@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TikTok Video Player PWA</title>
+  <!-- Link to manifest file -->
+  <link rel="manifest" href="manifest.json">
+  <!-- Theme color for Chrome's address bar -->
+  <meta name="theme-color" content="#0073e6">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    input[type="text"] {
+      width: 80%;
+      max-width: 500px;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      background-color: #0073e6;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005bb5;
+    }
+    .video-container {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>TikTok Video Player</h1>
+  <input type="text" id="tiktokUrl" placeholder="Enter TikTok video URL" />
+  <button id="playButton">Play Video</button>
+  <div class="video-container" id="videoContainer"></div>
+
+  <!-- TikTok embed script -->
+  <script async src="https://www.tiktok.com/embed.js"></script>
+  <script>
+    document.getElementById('playButton').addEventListener('click', function () {
+      var url = document.getElementById('tiktokUrl').value.trim();
+      // Regular expression to extract username and video id
+      var regex = /tiktok\.com\/@([^\/]+)\/video\/(\d+)/;
+      var match = url.match(regex);
+      if (match) {
+        var username = match[1];
+        var videoId = match[2];
+        var citeUrl = "https://www.tiktok.com/@" + username + "/video/" + videoId;
+        // Build the embed code as provided by TikTok
+        var embedHtml = '<blockquote class="tiktok-embed" cite="' + citeUrl + '" data-video-id="' + videoId + '" style="max-width: 605px;min-width: 325px;"><section> </section></blockquote>';
+        document.getElementById('videoContainer').innerHTML = embedHtml;
+        // If the TikTok embed script has already loaded, refresh the embed
+        if (window.tiktokEmbed && window.tiktokEmbed.load) {
+          window.tiktokEmbed.load();
+        } else {
+          // Append the script if it hasn't been loaded
+          var script = document.createElement('script');
+          script.async = true;
+          script.src = "https://www.tiktok.com/embed.js";
+          document.body.appendChild(script);
+        }
+      } else {
+        alert("Invalid TikTok URL. Please enter a valid TikTok video URL.");
+      }
+    });
+  </script>
+
+  <!-- Service worker registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(function(registration) {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch(function(err) {
+            console.log('Service Worker registration failed:', err);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
