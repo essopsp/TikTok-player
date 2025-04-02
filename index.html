@@ -3,1005 +3,132 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok Video Player PWA</title>
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ff3b5c">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>TikTok Player</title>
-  <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <!-- Material Icons fallback for offline use - simplified for mobile compatibility -->
-  <script>
-    // Defer the execution to ensure it doesn't block rendering
-    window.addEventListener('DOMContentLoaded', function() {
-      // Only load fallback if offline
-      if (!navigator.onLine) {
-        var script = document.createElement('script');
-        script.src = './icons/material-icons-fallback.js';
-        script.async = true;
-        script.onerror = function() {
-          // Silent failure if the script can't be loaded
-          console.warn('Could not load material icons fallback');
-        };
-        document.head.appendChild(script);
-      }
-    });
-  </script>
   <style>
-    :root {
-      --primary-color: #ff3b5c;
-      --primary-dark: #e0294a;
-      --text-color: #333;
-      --text-light: #888;
-      --bg-color: #f8f8f8;
-      --card-bg: #ffffff;
-      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      --navbar-height: 56px;
-      --safe-area-top: env(safe-area-inset-top);
-      --safe-area-bottom: env(safe-area-inset-bottom);
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --text-color: #f0f0f0;
-        --text-light: #aaa;
-        --bg-color: #121212;
-        --card-bg: #1e1e1e;
-        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      }
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
     body { 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-      color: var(--text-color);
-      background-color: var(--bg-color);
-      padding: 0;
-      margin: 0;
-      min-height: 100vh;
-      padding-top: calc(var(--safe-area-top) + var(--navbar-height));
-      padding-bottom: calc(var(--safe-area-bottom) + 16px);
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+      padding: 20px; 
+      background-color: #f4f4f4;
     }
-
-    .navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: calc(var(--navbar-height) + var(--safe-area-top));
-      padding-top: var(--safe-area-top);
-      background-color: var(--primary-color);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      z-index: 100;
-    }
-    
-    .navbar h1 {
-      font-size: 1.3rem;
-      font-weight: 600;
-    }
-
     .container {
-      max-width: 540px;
-      margin: 16px auto;
-      padding: 0 16px;
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
-    
-    .card {
-      background: var(--card-bg);
-      border-radius: 16px;
-      box-shadow: var(--card-shadow);
-      padding: 24px;
-      margin-bottom: 16px;
-      transition: transform 0.2s ease;
-    }
-    
-    .card:active {
-      transform: scale(0.98);
-    }
-
-    .url-input-container {
-      position: relative;
-      margin-bottom: 16px;
-    }
-    
     input {
       width: 100%; 
-      padding: 14px 16px;
-      padding-left: 44px;
-      border: none;
-      border-radius: 12px;
+      padding: 10px; 
+      margin: 10px 0; 
+      border: 1px solid #ccc;
+      border-radius: 5px;
       font-size: 16px;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
-      transition: box-shadow 0.2s ease;
     }
-    
-    input:focus {
-      outline: none;
-      box-shadow: inset 0 0 0 2px var(--primary-color);
-    }
-    
-    .input-icon {
-      position: absolute;
-      left: 12px;
-      top: 14px;
-      color: var(--text-light);
-    }
-    
-    .clear-button {
-      position: absolute;
-      right: 12px;
-      top: 14px;
-      background: none;
-      border: none;
-      color: var(--text-light);
-      cursor: pointer;
-      padding: 0;
-      display: none;
-    }
-
-    button.action-button {
+    button {
       width: 100%;
-      padding: 14px;
-      margin: 8px 0;
+      padding: 12px;
+      margin: 10px 0;
       border: none;
-      border-radius: 12px;
+      border-radius: 5px;
       font-size: 16px;
-      font-weight: 600;
-      background-color: var(--primary-color);
+      background-color: #ff3b5c;
       color: white;
       cursor: pointer;
-      transition: 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      transition: 0.3s;
     }
-    
-    button.action-button:hover, 
-    button.action-button:focus {
-      background-color: var(--primary-dark);
-      outline: none;
+    button:hover {
+      background-color: #e0294a;
     }
-    
-    button.action-button:active {
-      transform: scale(0.98);
-    }
-    
-    .action-button .material-icons {
-      margin-right: 8px;
-    }
-    
-    .recent-container {
-      margin-top: 24px;
-    }
-    
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      color: var(--text-color);
-    }
-    
-    .recent-item {
-      padding: 12px;
-      border-radius: 12px;
-      background-color: var(--bg-color);
-      margin-bottom: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-    }
-    
-    .recent-item .material-icons {
-      margin-right: 12px;
-      color: var(--primary-color);
-    }
-    
-    .recent-item-text {
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
     #videoContainer {
-      margin-top: 16px;
-      position: relative;
-      overflow: hidden;
-      border-radius: 16px;
-      background-color: black;
-      aspect-ratio: 9/16;
-      max-height: 80vh;
+      margin-top: 20px;
     }
-    
     iframe {
       width: 100%;
-      height: 100%;
+      height: 400px;
+      border-radius: 10px;
       border: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-    
-    .video-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--text-light);
-      padding: 24px;
-    }
-    
-    .video-placeholder .material-icons {
-      font-size: 48px;
-      margin-bottom: 16px;
-      opacity: 0.6;
-    }
-    
-    .empty-text {
-      text-align: center;
-      font-size: 16px;
-      opacity: 0.8;
-    }
-    
-    .toast {
-      position: fixed;
-      bottom: calc(20px + var(--safe-area-bottom));
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 12px 24px;
-      border-radius: 24px;
-      z-index: 1000;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-    }
-    
-    .toast.show {
-      opacity: 1;
-    }
-    
-    .hidden {
-      display: none !important;
-    }
-
-    /* Loading animation */
-    .loading-indicator {
-      display: inline-block;
-      position: relative;
-      width: 80px;
-      height: 80px;
-    }
-    .loading-indicator div {
-      position: absolute;
-      top: 33px;
-      width: 13px;
-      height: 13px;
-      border-radius: 50%;
-      background: var(--primary-color);
-      animation-timing-function: cubic-bezier(0, 1, 1, 0);
-    }
-    .loading-indicator div:nth-child(1) {
-      left: 8px;
-      animation: loading1 0.6s infinite;
-    }
-    .loading-indicator div:nth-child(2) {
-      left: 8px;
-      animation: loading2 0.6s infinite;
-    }
-    .loading-indicator div:nth-child(3) {
-      left: 32px;
-      animation: loading2 0.6s infinite;
-    }
-    .loading-indicator div:nth-child(4) {
-      left: 56px;
-      animation: loading3 0.6s infinite;
-    }
-    @keyframes loading1 {
-      0% { transform: scale(0); }
-      100% { transform: scale(1); }
-    }
-    @keyframes loading2 {
-      0% { transform: translate(0, 0); }
-      100% { transform: translate(24px, 0); }
-    }
-    @keyframes loading3 {
-      0% { transform: scale(1); }
-      100% { transform: scale(0); }
-    }
-
-    .skeleton {
-      background-color: #eee;
-      background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee);
-      background-size: 200px 100%;
-      background-repeat: no-repeat;
-      border-radius: 4px;
-      animation: shimmer 1.5s infinite;
-    }
-    
-    @keyframes shimmer {
-      0% { background-position: -200px 0; }
-      100% { background-position: 200px 0; }
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .skeleton {
-        background-color: #333;
-        background-image: linear-gradient(90deg, #333, #3a3a3a, #333);
-      }
-    }
-    
-    /* Offline indicator styles */
-    .offline-indicator {
-      position: fixed;
-      top: calc(var(--navbar-height) + var(--safe-area-top));
-      left: 0;
-      right: 0;
-      background-color: #ff9800;
-      color: white;
-      text-align: center;
-      padding: 8px;
-      font-size: 14px;
-      z-index: 99;
-      transform: translateY(-100%);
-      transition: transform 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .offline-indicator.show {
-      transform: translateY(0);
-    }
-    
-    .offline-indicator .material-icons {
-      margin-right: 8px;
-      font-size: 18px;
-    }
-    
-    /* Pending sync indicator */
-    .sync-indicator {
-      display: inline-flex;
-      align-items: center;
-      background-color: var(--bg-color);
-      border-radius: 16px;
-      padding: 4px 8px;
-      margin-left: 8px;
-      font-size: 12px;
-      color: var(--text-light);
-    }
-    
-    .sync-indicator .material-icons {
-      font-size: 14px;
-      margin-right: 4px;
-    }
-    
-    /* Android-specific fixes */
-    @media screen and (max-width: 600px) {
-      #videoContainer {
-        max-height: 70vh;
-        height: auto !important;
-        min-height: 300px;
-        position: relative;
-        width: 100%;
-        overflow: hidden;
-      }
-      
-      /* Fix iframe issues on Android */
-      iframe {
-        width: 100% !important;
-        height: 100% !important;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        border: none;
-      }
-      
-      /* Make inputs and buttons easier to tap on mobile */
-      input, button {
-        min-height: 48px;
-        font-size: 16px; /* Prevents iOS zoom on focus */
-      }
-      
-      /* Better touch target size for smaller screens */
-      .recent-item {
-        padding: 16px 12px;
-      }
-      
-      /* Fix potential scrolling issues */
-      body {
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior-y: contain;
-        position: relative;
-      }
-      
-      /* Ensure the mobile fullscreen button is visible and tappable */
-      #mobileFullscreenBtn {
-        display: block !important;
-        touch-action: manipulation;
-      }
     }
   </style>
 </head>
 <body>
-  <div class="navbar">
-    <h1>TikTok Player</h1>
-  </div>
-  
-  <div class="offline-indicator" id="offlineIndicator">
-    <span class="material-icons">signal_wifi_off</span>
-    <span>You are offline. Some features may be limited.</span>
-  </div>
-
   <div class="container">
-    <div class="card">
-      <div class="url-input-container">
-        <span class="material-icons input-icon">link</span>
-        <input type="text" id="tiktokUrl" placeholder="Paste TikTok URL or short link" />
-        <button class="clear-button" id="clearButton">
-          <span class="material-icons">close</span>
-        </button>
-      </div>
-      
-      <button id="playButton" class="action-button">
-        <span class="material-icons">play_arrow</span>
-        Play Video
-      </button>
-      
-      <button id="installButton" class="action-button hidden">
-        <span class="material-icons">download</span>
-        Install App
-      </button>
-    </div>
-    
-    <div id="videoContainer" class="video-container">
-      <div class="empty-state">
-        <i class="material-icons">movie</i>
-        <p>Enter a TikTok URL to play</p>
-      </div>
-    </div>
-    
-    <!-- Mobile fullscreen button -->
-    <button id="mobileFullscreenBtn" class="material-icons" style="display: none; position: fixed; bottom: 20px; right: 20px; z-index: 100; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; padding: 12px; width: 48px; height: 48px; font-size: 24px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">fullscreen</button>
-    
-    <div class="recent-container">
-      <h2 class="section-title">Recent Videos</h2>
-      <div id="recentVideos">
-        <!-- Recent videos will be populated here -->
-      </div>
-    </div>
+    <h1 style="color: #ff3b5c;">TikTok Video Player</h1>
+    <input type="text" id="tiktokUrl" placeholder="Enter TikTok video URL" />
+    <button id="playButton">Play</button>
+    <button id="installButton" style="display:none;">Install App</button>
+    <div id="videoContainer"></div>
   </div>
-  
-  <div class="toast" id="toast">Video link copied!</div>
   
   <script>
     // Register the service worker (ensure the file is in the root directory)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js')
+        navigator.serviceWorker.register('/service-worker.js')
           .then(registration => {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          }).catch(error => {
-            console.log('ServiceWorker registration failed: ', error);
+          })
+          .catch(err => {
+            console.log('ServiceWorker registration failed: ', err);
           });
       });
     }
 
-    // DOM Elements
-    const tiktokUrlInput = document.getElementById('tiktokUrl');
-    const clearButton = document.getElementById('clearButton');
-    const playButton = document.getElementById('playButton');
-    const installButton = document.getElementById('installButton');
-    const videoContainer = document.getElementById('videoContainer');
-    const recentVideosContainer = document.getElementById('recentVideos');
-    const toast = document.getElementById('toast');
-    const offlineIndicator = document.getElementById('offlineIndicator');
-    
-    // Track online/offline status
-    let isOnline = navigator.onLine;
-    
-    // Network status handling
-    function updateOnlineStatus() {
-      isOnline = navigator.onLine;
-      if (isOnline) {
-        offlineIndicator.style.display = 'none';
-        // Check if we have pending sync items
-        const pendingSyncItems = JSON.parse(localStorage.getItem('pendingSyncItems') || '[]');
-        if (pendingSyncItems.length > 0) {
-          syncIndicator.style.display = 'inline-flex';
-          
-          // Trigger background sync if available
-          if ('serviceWorker' in navigator && 'SyncManager' in window) {
-            navigator.serviceWorker.ready.then(registration => {
-              return registration.sync.register('sync-tiktok-data');
-            }).then(() => {
-              console.log('Sync registered');
-            }).catch(err => {
-              console.error('Sync registration failed:', err);
-              // Fallback for when background sync isn't available
-              processPendingItems();
-            });
-          } else {
-            // Fallback for when background sync isn't available
-            processPendingItems();
-          }
-        } else {
-          syncIndicator.style.display = 'none';
-        }
-      } else {
-        offlineIndicator.style.display = 'flex';
-        syncIndicator.style.display = 'none';
-      }
-    }
-    
-    // Initial online status
-    updateOnlineStatus();
-    
-    // Listen for online/offline events
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    
-    // Show/hide clear button based on input content
-    tiktokUrlInput.addEventListener('input', function() {
-      clearButton.style.display = this.value ? 'block' : 'none';
-    });
-    
-    // Clear input when clear button is clicked
-    clearButton.addEventListener('click', function() {
-      tiktokUrlInput.value = '';
-      clearButton.style.display = 'none';
-      tiktokUrlInput.focus();
-    });
-
-    // Simple string hash function for fallback IDs
-    function hashString(str) {
-      let hash = 0;
-      if (str.length === 0) return hash;
-      
-      for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32bit integer
-      }
-      
-      return Math.abs(hash);
-    }
-
-    // Function to extract TikTok video ID from various URL formats including shortened URLs
+    // Function to extract TikTok video ID from various URL formats
     function extractVideoId(url) {
-      // Show loading state
-      videoContainer.innerHTML = '<div class="loading">Loading video...</div>';
-      
-      // Handle empty URL
-      if (!url || url.trim() === '') {
-        videoContainer.innerHTML = '<div class="empty-state">Enter a TikTok URL to play</div>';
-        return null;
+      const patterns = [
+        /tiktok\.com\/@[^/]+\/video\/(\d+)/, 
+        /tiktok\.com\/(?:v|embed|video)\/(\d+)/, 
+        /tiktok\.com\/\w+\/(\d+)/
+      ];
+      for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match) return match[1];
       }
-      
-      let videoId = null;
-      url = url.trim();
-      
-      // Handle multiple URL formats
-      try {
-        // Handle full TikTok URLs
-        // Example: https://www.tiktok.com/@username/video/1234567890123456789
-        const fullUrlRegex = /tiktok\.com\/@?[\w.-]+\/video\/(\d+)/i;
-        const fullMatch = url.match(fullUrlRegex);
-        
-        // Handle shortened TikTok URLs (vm.tiktok.com format)
-        // Example: https://vm.tiktok.com/ABCDEFG/
-        const shortUrlRegex = /vm\.tiktok\.com\/([\w\d]+)/i;
-        const shortMatch = url.match(shortUrlRegex);
-        
-        // Handle direct video ID input
-        const directIdRegex = /^[\d]{16,19}$/;
-        const directMatch = url.match(directIdRegex);
-        
-        // For mobile, handle additional formats
-        // Example: https://m.tiktok.com/v/1234567890123456789.html
-        const mobileUrlRegex = /tiktok\.com\/v\/(\d+)/i;
-        const mobileMatch = url.match(mobileUrlRegex);
-        
-        if (fullMatch && fullMatch[1]) {
-          videoId = fullMatch[1];
-        } else if (shortMatch && shortMatch[1]) {
-          // For short URLs, we need to follow the redirect
-          // But since we can't do this directly in browser due to CORS,
-          // we'll use the full embed URL format with the shortened code
-          console.log("Short URL detected: " + url);
-          return "short-url:" + url;
-        } else if (directMatch) {
-          videoId = url;
-        } else if (mobileMatch && mobileMatch[1]) {
-          videoId = mobileMatch[1];
-        } else {
-          // Try extracting just a numeric ID from the URL as fallback
-          const numericId = url.match(/(\d{16,19})/);
-          if (numericId && numericId[1]) {
-            videoId = numericId[1];
-          } else {
-            throw new Error("Could not extract video ID from URL");
-          }
-        }
-      } catch (error) {
-        console.error("Error extracting video ID:", error);
-        videoContainer.innerHTML = '<div class="error-state">Invalid TikTok URL. Please try again.</div>';
-        return null;
-      }
-      
-      return videoId;
+      return null;
     }
 
-    // Play button handler - Mobile-optimized
-    playButton.addEventListener('click', function () {
-      var url = tiktokUrlInput.value.trim();
-      if (!url) {
-        showToast('Please enter a TikTok URL');
-        return;
-      }
-      
-      // Show loading state
-      videoContainer.innerHTML = `
-        <div class="video-placeholder">
-          <div class="loading-indicator"><div></div><div></div><div></div><div></div></div>
-          <p class="empty-text">Loading video...</p>
-        </div>
-      `;
-      
-      // Simple direct approach for extracting video ID
-      var videoId = null;
-      
-      // Handle various URL formats
-      if (url.includes('tiktok.com/@') && url.includes('/video/')) {
-        // Regular format: https://www.tiktok.com/@username/video/1234567890123456789
-        var match = url.match(/\/video\/(\d+)/);
-        if (match && match[1]) videoId = match[1];
-      } 
-      else if (url.match(/^\d{16,19}$/)) {
-        // Just the video ID
-        videoId = url;
-      }
-      else if (url.includes('vm.tiktok.com') || url.includes('vt.tiktok.com')) {
-        // For short URLs, embed directly
-        var embedUrl = `https://www.tiktok.com/embed/v2/${url}`;
-        
-        // Create iframe with specific attributes for better mobile compatibility
-        var iframe = document.createElement('iframe');
-        iframe.src = url;
-        iframe.allowFullscreen = true;
-        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-        
-        // Clear container and add iframe
-        videoContainer.innerHTML = '';
-        videoContainer.appendChild(iframe);
-        
-        // Save to recent videos
-        saveToRecentVideos(url, 'Short URL');
-        return;
-      }
-      else if (url.match(/\d{16,19}/)) {
-        // Try to extract just the numeric ID
-        var match = url.match(/(\d{16,19})/);
-        if (match && match[1]) videoId = match[1];
-      }
-      
+    // Play button handler: extracts video ID, creates an iframe, and requests fullscreen
+    document.getElementById('playButton').addEventListener('click', function () {
+      var url = document.getElementById('tiktokUrl').value.trim();
+      var videoId = extractVideoId(url);
       if (videoId) {
-        var embedUrl = `https://www.tiktok.com/embed/v2/${videoId}`;
-        
-        // Create iframe with specific attributes for better mobile compatibility
+        var embedUrl = `https://www.tiktok.com/embed/${videoId}`;
         var iframe = document.createElement('iframe');
         iframe.src = embedUrl;
         iframe.allowFullscreen = true;
-        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-        
-        // Clear container and add iframe
-        videoContainer.innerHTML = '';
-        videoContainer.appendChild(iframe);
-        
-        // Save to recent videos
-        saveToRecentVideos(url, videoId);
+        document.getElementById('videoContainer').innerHTML = '';
+        document.getElementById('videoContainer').appendChild(iframe);
+        iframe.requestFullscreen().catch(err => console.error('Fullscreen error:', err));
       } else {
-        videoContainer.innerHTML = `
-          <div class="video-placeholder">
-            <span class="material-icons">error</span>
-            <p class="empty-text">Invalid TikTok URL. Please check and try again.</p>
-          </div>
-        `;
-        showToast('Invalid TikTok URL');
+        alert("Invalid TikTok URL.");
       }
     });
 
-    // Check if a video is in recents (for offline mode)
-    function isVideoInRecents(url) {
-      const recentVideos = JSON.parse(localStorage.getItem('recentVideos') || '[]');
-      return recentVideos.some(video => video.url === url);
-    }
-
-    // Recent videos functionality with offline support
-    function saveToRecentVideos(url, videoId) {
-      let recentVideos = JSON.parse(localStorage.getItem('recentVideos') || '[]');
-      
-      // Add the new video to the beginning of the array
-      const newVideo = {
-        url: url,
-        videoId: videoId,
-        timestamp: Date.now(),
-        pendingSync: !isOnline
-      };
-      
-      recentVideos.unshift(newVideo);
-      
-      // Keep only the 5 most recent videos
-      recentVideos = recentVideos.slice(0, 5);
-      
-      // Save to localStorage
-      localStorage.setItem('recentVideos', JSON.stringify(recentVideos));
-      
-      // Save to widget data for widgets to use
-      const widgetData = {
-        lastUpdated: new Date().toISOString(),
-        recentVideos: recentVideos
-      };
-      localStorage.setItem('widget-data-recent', JSON.stringify(widgetData));
-      
-      // Update the UI
-      displayRecentVideos();
-      
-      // Request background sync when online for pending items
-      if (!isOnline && 'serviceWorker' in navigator && 'SyncManager' in window) {
-        navigator.serviceWorker.ready.then(registration => {
-          registration.sync.register('sync-tiktok-data');
-        });
-      }
-    }
-    
-    // Modified displayRecentVideos function to show sync status
-    function displayRecentVideos() {
-      const recentVideos = JSON.parse(localStorage.getItem('recentVideos') || '[]');
-      
-      if (recentVideos.length === 0) {
-        recentVideosContainer.innerHTML = `
-          <div class="recent-item">
-            <span class="material-icons">history</span>
-            <span class="recent-item-text">No recent videos</span>
-          </div>
-        `;
-        return;
-      }
-      
-      recentVideosContainer.innerHTML = '';
-      
-      recentVideos.forEach(video => {
-        const item = document.createElement('div');
-        item.className = 'recent-item';
-        
-        // Show sync indicator for pending items
-        const syncIndicator = video.pendingSync ? 
-          '<span class="sync-indicator"><span class="material-icons">sync</span>Pending</span>' : '';
-        
-        item.innerHTML = `
-          <span class="material-icons">play_circle_filled</span>
-          <span class="recent-item-text">${video.url}</span>
-          ${syncIndicator}
-        `;
-        
-        item.addEventListener('click', function() {
-          tiktokUrlInput.value = video.url;
-          clearButton.style.display = 'block';
-          playButton.click();
-        });
-        
-        recentVideosContainer.appendChild(item);
-      });
-    }
-    
-    // Toast notification
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.add('show');
-      
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
-    }
-    
     // Handle the PWA install prompt
     let installPrompt;
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();
       installPrompt = event;
-      installButton.classList.remove('hidden');
+      document.getElementById('installButton').style.display = 'block';
     });
 
-    installButton.addEventListener('click', () => {
+    document.getElementById('installButton').addEventListener('click', () => {
       if (installPrompt) {
         installPrompt.prompt();
         installPrompt.userChoice.then(choice => {
           if (choice.outcome === 'accepted') {
             console.log('PWA installed');
-            showToast('App installed successfully!');
-            installButton.classList.add('hidden');
           }
           installPrompt = null;
         });
       }
     });
-    
-    // Check if running in standalone mode
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-      // Running in standalone mode (installed as PWA)
-      document.body.classList.add('pwa-standalone');
-      
-      const installBtn = document.getElementById('installBtn');
-      if (installBtn) {
-        installBtn.style.display = 'none';
-      }
-    }
-    
-    // Check if we're on a mobile device and set up fullscreen button
-    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-      var fullscreenBtn = document.getElementById('mobileFullscreenBtn');
-      if (fullscreenBtn) {
-        fullscreenBtn.style.display = 'block';
-        
-        fullscreenBtn.addEventListener('click', function() {
-          var iframe = document.querySelector('#videoContainer iframe');
-          if (iframe) {
-            try {
-              // Try various fullscreen methods
-              if (iframe.requestFullscreen) {
-                iframe.requestFullscreen();
-              } else if (iframe.webkitRequestFullscreen) {
-                iframe.webkitRequestFullscreen();
-              } else if (iframe.mozRequestFullScreen) {
-                iframe.mozRequestFullScreen();
-              } else if (iframe.msRequestFullscreen) {
-                iframe.msRequestFullscreen();
-              } else {
-                // Fallback for browsers that don't support iframe fullscreen
-                window.open(iframe.src, '_blank');
-              }
-            } catch (error) {
-              console.log("Fullscreen error:", error);
-              // Fallback - open in new window
-              window.open(iframe.src, '_blank');
-            }
-          }
-        });
-      }
-    }
-    
-    // Initialize the app
-    window.addEventListener('load', () => {
-      // Display recent videos on app load
-      displayRecentVideos();
-      
-      // Handle parameters from URL if any
-      const urlParams = new URLSearchParams(window.location.search);
-      const videoParam = urlParams.get('video');
-      if (videoParam) {
-        tiktokUrlInput.value = decodeURIComponent(videoParam);
-        clearButton.style.display = 'block';
-        // Auto-play if video parameter is present
-        setTimeout(() => playButton.click(), 500);
-      }
-      
-      // Handle view=recent parameter
-      const viewParam = urlParams.get('view');
-      if (viewParam === 'recent') {
-        // Scroll to recent videos
-        document.querySelector('.recent-container').scrollIntoView({ behavior: 'smooth' });
-      }
-      
-      // Handle action=paste parameter
-      const actionParam = urlParams.get('action');
-      if (actionParam === 'paste') {
-        // Focus the URL input
-        tiktokUrlInput.focus();
-        
-        // Try to get from clipboard if permission is granted
-        if (navigator.clipboard && navigator.clipboard.readText) {
-          navigator.clipboard.readText()
-            .then(text => {
-              if (text && text.includes('tiktok.com')) {
-                tiktokUrlInput.value = text;
-                clearButton.style.display = 'block';
-              }
-            })
-            .catch(err => {
-              console.log('Could not access clipboard:', err);
-            });
-        }
-      }
-    });
-    
-    // Handle PWA protocol handlers (requires registered protocol in manifest)
-    if ('launchQueue' in window) {
-      window.launchQueue.setConsumer((launchParams) => {
-        if (launchParams.targetURL) {
-          const videoUrl = new URL(launchParams.targetURL).searchParams.get('url');
-          if (videoUrl) {
-            tiktokUrlInput.value = decodeURIComponent(videoUrl);
-            clearButton.style.display = 'block';
-            playButton.click();
-          }
-        }
-      });
-    }
-    
-    // Listen for messages from the service worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'sync-complete') {
-          // Mark synced items as no longer pending
-          const recentVideos = JSON.parse(localStorage.getItem('recentVideos') || '[]');
-          let updated = false;
-          
-          recentVideos.forEach(video => {
-            if (video.pendingSync) {
-              video.pendingSync = false;
-              updated = true;
-            }
-          });
-          
-          if (updated) {
-            localStorage.setItem('recentVideos', JSON.stringify(recentVideos));
-            displayRecentVideos();
-            showToast('All content synced!');
-          }
-        }
-      });
-    }
-
-    function processPendingItems() {
-      // Process pending items from localStorage
-      const pendingSyncItems = JSON.parse(localStorage.getItem('pendingSyncItems') || '[]');
-      if (pendingSyncItems.length > 0) {
-        // Process each item
-        // For example, adding videos to recent list
-        let recentVideos = JSON.parse(localStorage.getItem('recentVideos') || '[]');
-        
-        pendingSyncItems.forEach(item => {
-          if (item.action === 'addVideo' && !recentVideos.some(v => v.id === item.videoId)) {
-            recentVideos.unshift({
-              id: item.videoId,
-              title: item.title || 'TikTok Video',
-              timestamp: new Date().toISOString()
-            });
-          }
-        });
-        
-        // Keep only the last 10 videos
-        recentVideos = recentVideos.slice(0, 10);
-        localStorage.setItem('recentVideos', JSON.stringify(recentVideos));
-        
-        // Clear pending items
-        localStorage.setItem('pendingSyncItems', '[]');
-        syncIndicator.style.display = 'none';
-        
-        // Refresh the display
-        displayRecentVideos();
-      }
-    }
   </script>
 </body>
 </html>
