@@ -8,8 +8,8 @@
     {"origin": "https://tiktokplayer.shlimbo.com.ly/"}
   ],
   "start_url": "/index.html",
-  "display": "standalone",
-  "display_override": ["window-controls-overlay"],
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "window-controls-overlay"],
   "theme_color": "#ff3b5c",
   "background_color": "#ffffff",
   "iarc_rating_id": "PG",
@@ -165,11 +165,7 @@
           "sizes": "192x192"
         }
       ],
-      "author": "TikTok Player",
-      "data": {
-        "interval": "30m",
-        "source": "feed"
-      },
+      "auth": false,
       "update": "auto",
       "resources": [
         "/widget.html"
@@ -180,20 +176,7 @@
     "preferred_width": 400
   },
   "handle_links": "preferred",
-  "background_sync": {
-    "periodic": true,
-    "register_on_startup": true
-  },
-  "periodic_sync": {
-    "events": [
-      {
-        "name": "content-update",
-        "min_interval": 24
-      }
-    ]
-  },
-  "push": {
-    "platform": "web",
-    "gcm_sender_id": "123456789012"
-  }
+  "background_sync": true,
+  "periodic_sync": true,
+  "push": true
 }
