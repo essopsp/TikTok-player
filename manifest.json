@@ -4,6 +4,11 @@
   "description": "A modern Progressive Web App for playing TikTok videos with offline support and enhanced features.",
   "id": "/",
   "scope": "/",
+  "scope_extensions": [
+    {
+      "origin": "https://tiktokplayer.example.com"
+    }
+  ],
   "start_url": "/index.html",
   "display": "standalone",
   "theme_color": "#ff3b5c",
@@ -162,5 +167,53 @@
       "url": "https://play.google.com/store/apps/details?id=com.example.tiktokplayer"
     }
   ],
-  "handle_links": "preferred"
+  "handle_links": "preferred",
+  "widgets": [
+    {
+      "name": "Recent TikTok Videos",
+      "short_name": "Recent",
+      "description": "Display your recently viewed TikTok videos for quick access",
+      "tag": "recent-videos",
+      "ms_ac_template": "widget_template.json",
+      "data": "widget-data-recent.json",
+      "screenshots": [
+        {
+          "src": "screenshots/widget-screenshot.png",
+          "sizes": "540x480",
+          "label": "Recent videos widget"
+        }
+      ],
+      "icons": [
+        {
+          "src": "icons/widget-icon.png",
+          "sizes": "96x96"
+        }
+      ],
+      "auth": false,
+      "update": 86400
+    },
+    {
+      "name": "Quick Play",
+      "short_name": "Play",
+      "description": "Quickly play TikTok videos from a widget",
+      "tag": "quick-play",
+      "ms_ac_template": "widget_play_template.json",
+      "data": "widget-data-play.json",
+      "screenshots": [
+        {
+          "src": "screenshots/widget-play-screenshot.png",
+          "sizes": "540x480",
+          "label": "Quick play widget"
+        }
+      ],
+      "icons": [
+        {
+          "src": "icons/widget-play-icon.png",
+          "sizes": "96x96"
+        }
+      ],
+      "auth": false,
+      "update": 86400
+    }
+  ]
 }

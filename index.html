@@ -327,11 +327,61 @@
         background-image: linear-gradient(90deg, #333, #3a3a3a, #333);
       }
     }
+    
+    /* Offline indicator styles */
+    .offline-indicator {
+      position: fixed;
+      top: calc(var(--navbar-height) + var(--safe-area-top));
+      left: 0;
+      right: 0;
+      background-color: #ff9800;
+      color: white;
+      text-align: center;
+      padding: 8px;
+      font-size: 14px;
+      z-index: 99;
+      transform: translateY(-100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .offline-indicator.show {
+      transform: translateY(0);
+    }
+    
+    .offline-indicator .material-icons {
+      margin-right: 8px;
+      font-size: 18px;
+    }
+    
+    /* Pending sync indicator */
+    .sync-indicator {
+      display: inline-flex;
+      align-items: center;
+      background-color: var(--bg-color);
+      border-radius: 16px;
+      padding: 4px 8px;
+      margin-left: 8px;
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    
+    .sync-indicator .material-icons {
+      font-size: 14px;
+      margin-right: 4px;
+    }
   </style>
 </head>
 <body>
   <div class="navbar">
     <h1>TikTok Player</h1>
+  </div>
+  
+  <div class="offline-indicator" id="offlineIndicator">
+    <span class="material-icons">signal_wifi_off</span>
+    <span>You are offline. Some features may be limited.</span>
   </div>
 
   <div class="container">
@@ -394,155 +444,53 @@
     const videoContainer = document.getElementById('videoContainer');
     const recentVideosContainer = document.getElementById('recentVideos');
     const toast = document.getElementById('toast');
+    const offlineIndicator = document.getElementById('offlineIndicator');
     
-    // Show/hide clear button based on input content
-    tiktokUrlInput.addEventListener('input', function() {
-      clearButton.style.display = this.value ? 'block' : 'none';
-    });
+    // Track online/offline status
+    let isOnline = navigator.onLine;
     
-    // Clear input when clear button is clicked
-    clearButton.addEventListener('click', function() {
-      tiktokUrlInput.value = '';
-      clearButton.style.display = 'none';
-      tiktokUrlInput.focus();
-    });
-
-    // Function to extract TikTok video ID from various URL formats including shortened URLs
-    function extractVideoId(url) {
-      // Clean up the URL first
-      url = url.trim();
-      
-      // If it's a shortened URL (vm.tiktok.com, vt.tiktok.com, etc.), we need to resolve it
-      if (url.includes('vm.tiktok.com') || 
-          url.includes('vt.tiktok.com') || 
-          url.includes('m.tiktok.com') ||
-          url.includes('tiktok.com/t/')) {
-        // Return a promise to handle URL resolution
-        return new Promise((resolve) => {
-          showToast('Resolving short link...');
-          // Create a loading state
-          videoContainer.innerHTML = `
-            <div class="video-placeholder">
-              <div class="loading-indicator"><div></div><div></div><div></div><div></div></div>
-              <p class="empty-text">Resolving TikTok link...</p>
-            </div>
-          `;
-          
-          // Use fetch with no-cors to prevent CORS issues
-          fetch(url, { mode: 'no-cors' })
-            .then(response => {
-              // We can't actually read the response due to CORS, 
-              // but the browser follows redirects automatically
-              // So we can check if response.url is different from our original url
-              
-              // Since we can't access response.url in no-cors mode, we'll use a fallback
-              // Just extract ID using our regular patterns from the shortened URL
-              const patterns = [
-                /tiktok\.com\/@[^/]+\/video\/(\d+)/,
-                /tiktok\.com\/(?:v|embed|video)\/(\d+)/,
-                /tiktok\.com\/\w+\/(\d+)/,
-                /(\d{19})/ // Look for a 19-digit number which is likely a TikTok ID
-              ];
-              
-              for (const pattern of patterns) {
-                const match = url.match(pattern);
-                if (match) {
-                  resolve(match[1]);
-                  return;
-                }
-              }
-              
-              // If we couldn't extract an ID, resolve with null
-              resolve(null);
-            })
-            .catch(() => {
-              // If fetch fails, try to extract directly
-              const directMatch = url.match(/(\d{19})/);
-              if (directMatch) {
-                resolve(directMatch[1]);
-              } else {
-                resolve(null);
-              }
-            });
-        });
-      }
-      
-      // For regular URLs, use our patterns
-      const patterns = [
-        /tiktok\.com\/@[^/]+\/video\/(\d+)/,
-        /tiktok\.com\/(?:v|embed|video)\/(\d+)/,
-        /tiktok\.com\/\w+\/(\d+)/
-      ];
-      
-      for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match) return Promise.resolve(match[1]);
-      }
-      
-      return Promise.resolve(null);
-    }
-
-    // Play button handler
-    playButton.addEventListener('click', function () {
-      var url = tiktokUrlInput.value.trim();
-      if (!url) {
-        showToast('Please enter a TikTok URL');
-        return;
-      }
-      
-      // Show loading state
-      videoContainer.innerHTML = `
-        <div class="video-placeholder">
-          <div class="loading-indicator"><div></div><div></div><div></div><div></div></div>
-          <p class="empty-text">Loading video...</p>
-        </div>
-      `;
-      
-      // Extract video ID (now returns a promise)
-      extractVideoId(url).then(videoId => {
-        if (videoId) {
-          var embedUrl = `https://www.tiktok.com/embed/${videoId}`;
-          var iframe = document.createElement('iframe');
-          iframe.src = embedUrl;
-          iframe.allowFullscreen = true;
-          videoContainer.innerHTML = '';
-          videoContainer.appendChild(iframe);
-          
-          // Save to recent videos
-          saveToRecentVideos(url, videoId);
-          
-          // Try to request fullscreen
-          iframe.onload = function() {
-            try {
-              videoContainer.requestFullscreen().catch(err => {
-                console.log('Fullscreen not available or not allowed:', err);
-              });
-            } catch (e) {
-              console.log('Fullscreen error:', e);
-            }
-          };
-        } else {
-          videoContainer.innerHTML = `
-            <div class="video-placeholder">
-              <span class="material-icons">error</span>
-              <p class="empty-text">Invalid TikTok URL. Please check and try again.</p>
-            </div>
-          `;
-          showToast('Invalid TikTok URL');
+    // Network status handling
+    function updateOnlineStatus() {
+      isOnline = navigator.onLine;
+      if (!isOnline) {
+        // User is offline
+        offlineIndicator.classList.add('show');
+        showToast('You are offline. Limited functionality available.');
+      } else {
+        // User is back online
+        offlineIndicator.classList.remove('show');
+        
+        // Request background sync if available
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+          navigator.serviceWorker.ready.then(registration => {
+            registration.sync.register('sync-tiktok-data')
+              .then(() => console.log('Background sync registered'))
+              .catch(err => console.error('Background sync registration failed:', err));
+          });
         }
-      });
-    });
-
-    // Recent videos functionality
+      }
+    }
+    
+    // Initial online status
+    updateOnlineStatus();
+    
+    // Listen for online/offline events
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    
+    // Modified saveToRecentVideos function with offline support
     function saveToRecentVideos(url, videoId) {
       let recentVideos = JSON.parse(localStorage.getItem('recentVideos') || '[]');
       
       // Add the new video to the beginning of the array
-      recentVideos.unshift({
+      const newVideo = {
         url: url,
         videoId: videoId,
-        timestamp: Date.now()
-      });
+        timestamp: Date.now(),
+        pendingSync: !isOnline
+      };
+      
+      recentVideos.unshift(newVideo);
       
       // Keep only the 5 most recent videos
       recentVideos = recentVideos.slice(0, 5);
@@ -550,10 +498,25 @@
       // Save to localStorage
       localStorage.setItem('recentVideos', JSON.stringify(recentVideos));
       
+      // Save to widget data for widgets to use
+      const widgetData = {
+        lastUpdated: new Date().toISOString(),
+        recentVideos: recentVideos
+      };
+      localStorage.setItem('widget-data-recent', JSON.stringify(widgetData));
+      
       // Update the UI
       displayRecentVideos();
+      
+      // Request background sync when online for pending items
+      if (!isOnline && 'serviceWorker' in navigator && 'SyncManager' in window) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.sync.register('sync-tiktok-data');
+        });
+      }
     }
     
+    // Modified displayRecentVideos function to show sync status
     function displayRecentVideos() {
       const recentVideos = JSON.parse(localStorage.getItem('recentVideos') || '[]');
       
@@ -572,9 +535,15 @@
       recentVideos.forEach(video => {
         const item = document.createElement('div');
         item.className = 'recent-item';
+        
+        // Show sync indicator for pending items
+        const syncIndicator = video.pendingSync ? 
+          '<span class="sync-indicator"><span class="material-icons">sync</span>Pending</span>' : '';
+        
         item.innerHTML = `
           <span class="material-icons">play_circle_filled</span>
           <span class="recent-item-text">${video.url}</span>
+          ${syncIndicator}
         `;
         
         item.addEventListener('click', function() {
@@ -587,70 +556,25 @@
       });
     }
     
-    // Toast notification
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.add('show');
-      
-      setTimeout(() => {
-        toast.classList.remove('show');
-      }, 3000);
-    }
-    
-    // Handle the PWA install prompt
-    let installPrompt;
-    window.addEventListener('beforeinstallprompt', (event) => {
-      event.preventDefault();
-      installPrompt = event;
-      installButton.classList.remove('hidden');
-    });
-
-    installButton.addEventListener('click', () => {
-      if (installPrompt) {
-        installPrompt.prompt();
-        installPrompt.userChoice.then(choice => {
-          if (choice.outcome === 'accepted') {
-            console.log('PWA installed');
-            showToast('App installed successfully!');
-            installButton.classList.add('hidden');
-          }
-          installPrompt = null;
-        });
-      }
-    });
-    
-    // Check if app is in standalone mode (installed)
-    if (window.matchMedia('(display-mode: standalone)').matches || 
-        window.navigator.standalone === true) {
-      // App is installed and running in standalone mode
-      document.body.classList.add('standalone');
-    }
-    
-    // Initialize the app
-    window.addEventListener('load', () => {
-      // Display recent videos on app load
-      displayRecentVideos();
-      
-      // Handle parameters from URL if any
-      const urlParams = new URLSearchParams(window.location.search);
-      const videoParam = urlParams.get('video');
-      if (videoParam) {
-        tiktokUrlInput.value = decodeURIComponent(videoParam);
-        clearButton.style.display = 'block';
-        // Auto-play if video parameter is present
-        setTimeout(() => playButton.click(), 500);
-      }
-    });
-    
-    // Handle PWA protocol handlers (requires registered protocol in manifest)
-    if ('launchQueue' in window) {
-      window.launchQueue.setConsumer((launchParams) => {
-        if (launchParams.targetURL) {
-          const videoUrl = new URL(launchParams.targetURL).searchParams.get('url');
-          if (videoUrl) {
-            tiktokUrlInput.value = decodeURIComponent(videoUrl);
-            clearButton.style.display = 'block';
-            playButton.click();
+    // Listen for messages from the service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'sync-complete') {
+          // Mark synced items as no longer pending
+          const recentVideos = JSON.parse(localStorage.getItem('recentVideos') || '[]');
+          let updated = false;
+          
+          recentVideos.forEach(video => {
+            if (video.pendingSync) {
+              video.pendingSync = false;
+              updated = true;
+            }
+          });
+          
+          if (updated) {
+            localStorage.setItem('recentVideos', JSON.stringify(recentVideos));
+            displayRecentVideos();
+            showToast('All content synced!');
           }
         }
       });

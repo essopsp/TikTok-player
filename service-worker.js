@@ -163,19 +163,47 @@ async function cacheFirstStrategy(request) {
   });
 }
 
-// Background sync for pending operations
+// Background sync for pending operations - Enhanced
 self.addEventListener('sync', (event) => {
   console.log('[Service Worker] Background Sync', event);
   if (event.tag === 'sync-tiktok-data') {
-    event.waitUntil(syncTikTokData());
+    event.waitUntil(
+      syncTikTokData()
+        .then(() => {
+          console.log('[Service Worker] Sync completed successfully');
+          // Notify all clients that sync is complete
+          self.clients.matchAll()
+            .then(clients => {
+              clients.forEach(client => {
+                client.postMessage({
+                  type: 'sync-complete',
+                  timestamp: Date.now()
+                });
+              });
+            });
+        })
+        .catch(error => {
+          console.error('[Service Worker] Sync failed:', error);
+        })
+    );
   }
 });
 
-// Function to sync data when online
+// Function to sync data when online - Enhanced
 async function syncTikTokData() {
-  // Here you would implement any data synchronization needed
-  // when the device comes back online
   console.log('[Service Worker] Syncing TikTok data');
+  
+  try {
+    // In a real app, you would implement server sync here
+    // For demo purposes, we'll simulate a successful sync
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+    
+    // Return success
+    return Promise.resolve();
+  } catch (error) {
+    console.error('[Service Worker] Error during sync:', error);
+    return Promise.reject(error);
+  }
 }
 
 // Push notification handler
