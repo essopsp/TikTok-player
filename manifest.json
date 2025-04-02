@@ -149,8 +149,28 @@
   "widgets": [
     {
       "name": "TikTok Feed Widget",
+      "short_name": "Feed",
       "description": "Shows latest TikTok videos",
-      "tag": "example_widget",
+      "tag": "tiktok_feed",
+      "screenshots": [
+        {
+          "src": "icons/widget-icon.png",
+          "sizes": "540x540",
+          "type": "image/png"
+        }
+      ],
+      "icons": [
+        {
+          "src": "icons/widget-icon.png",
+          "sizes": "192x192"
+        }
+      ],
+      "author": "TikTok Player",
+      "data": {
+        "interval": "30m",
+        "source": "feed"
+      },
+      "update": "auto",
       "resources": [
         "/widget.html"
       ]
@@ -162,12 +182,18 @@
   "handle_links": "preferred",
   "background_sync": {
     "periodic": true,
-    "min_interval": 24
+    "register_on_startup": true
   },
   "periodic_sync": {
-    "min_interval": 24
+    "events": [
+      {
+        "name": "content-update",
+        "min_interval": 24
+      }
+    ]
   },
   "push": {
-    "platform": "web"
+    "platform": "web",
+    "gcm_sender_id": "123456789012"
   }
 }
